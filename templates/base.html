@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MySite</title>
+    {% block style %}
+        {% include 'style.html' %}
+    {% endblock %}
+</head>
+<body>
+    {% block menu %}
+        {% include 'menu.html' %}
+    {% endblock %}
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

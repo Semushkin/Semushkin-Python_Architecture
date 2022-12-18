@@ -1,25 +1,23 @@
 '''
 В этой самостоятельной работе тренируем умения:
 
-    Разделять get и post запрос внутри wsgi-фреймворка
-    Получать и декодировать параметры post запроса
+    Работать с шаблонизатором
+    Использовать базовые и включенные шаблоны
 
 Смысл:
 
-Чтобы уметь обрабатывать разные типы web-запросов
+Для того чтобы избегать дублирования в шаблонах
 Последовательность действий:
-0. Добавить в свой wsgi-фреймворк возможность обработки post-запроса
-1. Добавить в свой wsgi-фреймворк возможность получения данных из post запроса
-2. Дополнительно можно добавить возможность получения данных из get запроса
-3. В проект добавить страницу контактов на которой пользователь может отправить нам сообщение (пользователь вводит тему сообщения, его текст, свой email)
-4. После отправки реализовать сохранение сообщения в файл, либо вывести сообщение в терминал (базу данных пока не используем)
-
+0. Внести изменения в wsgi-фреймворк, которые позволят использовать механизм наследования и включения шаблонов
+1. Создать базовый шаблон для всех страниц сайта
+2. Если нужно создать один или несколько включенных шаблонов
+3. Добавить на сайт меню, которое будет отображаться на всех страницах
+4. Улучшить имеющиеся страницы с использованием базовых и включенных шаблонов
+5. Проверить что фреймворк готов для дальнейшего использования при желании добавить какой либо полезный функционал
 
 '''
 from quopri import decodestring
-
-from jinja2 import Template
-from pprint import pprint
+from templator import render
 
 
 class Application:
@@ -76,26 +74,19 @@ class Application:
 
 
 def page_controller_main():
-    return render('templates/index.html', object_list=[{'content': 'Main Page'}])
+    return render('index.html', object_list=[{'content': 'Main Page'}])
 
 
 def page_controller_about():
-    return render('templates/about.html', object_list=[{'content': 'About us'}])
+    return render('about.html', object_list=[{'content': 'About us'}])
 
 
 def page_controller_contacts():
-    return render('templates/contacts.html', object_list=[{'content': 'Contacts'}])
+    return render('contacts.html', object_list=[{'content': 'Contacts'}])
 
 
 def page_controller_404():
     return '404 Page not found!!!'
-
-
-def render(template_name, **kwargs):
-    with open(template_name, encoding='utf-8') as f:
-        template = Template(f.read())
-    return template.render(**kwargs)
-
 
 URLS = {
     '/': page_controller_main(),
