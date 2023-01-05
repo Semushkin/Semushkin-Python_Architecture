@@ -1,6 +1,40 @@
 
+'''
+В этой самостоятельной работе тренируем умения:
+
+    Выбирать подходящий порождающий шаблон
+    Применять порождающие шаблоны в своем коде
+
+Смысл:
+
+Для использования порождающих шаблонов в своем коде
+Последовательность действий:
+0. На базе нашего wsgi-фреймворка мы начинаем делать обучающий сайт, для того чтобы на нем отработать навыки применения
+    шаблонов проектирования
+1. Тема (чему мы будем обучать) может быть любая, что вам больше нравиться (например: горным лыжам, йоге,
+    администрированию, фридайвингу, продажам, …)
+2. Минимальное описание работы сайта следующее:
+
+    На сайте есть курсы по обучению чему либо. Курс относится какой либо категории.
+    Например для обучения программированию есть python, java, javascript. И курсы python для новичков, java для профи, …
+    Также на сайте есть студенты, которые могут записаться на один или несколько курсов ###
+    3. Это минимальный функционал, на котором мы будем отрабатывать шаблоны, можно будет его расширить. ###
+    4. В данном домашнем задании требуется добавить следующий функционал:
+        Создание категории курсов
+        Вывод списка категорий
+        Создание курса
+        Вывод списка курсов ###
+    5. Далее можно сделать всё или одно на выбор, применив при этом один из порождающих паттернов, либо аргументировать почему данные паттерны не были использованы:
+    На сайте могут быть курсы разных видов: офлайн (в живую) курсы (для них указывается адрес проведения) и онлайн курсы (вебинары), для них указывается вебинарная система.
+    Также известно что в будущем могут добавиться новые виды курсов
+    Реализовать простой логгер (не используя сторонние библиотеки). У логгера есть имя. Логгер с одним и тем же именем пишет данные в один и тот же файл, а с другим именем в другой
+    Реализовать страницу для копирования уже существующего курса (Для того чтобы снова с нуля не создавать курс, а скопировать существующий и немного отредактировать)
+
+
+'''
+from pprint import pprint
 from quopri import decodestring
-from templator import render
+from views import PageController404
 
 
 class Application:
@@ -15,21 +49,25 @@ class Application:
     def front_controller(self, path, env):
         method = env['REQUEST_METHOD']
         query = env["QUERY_STRING"]
+        request = {}
         if method == 'GET':
+            request['method'] = method
             if query:
                 print(f'Получен GET запрос, c данными {self.parse_query_data(query)}')
+                request['data'] = self.parse_query_data(query)
             else:
                 print('Получен GET запрос, без данных')
         elif method == 'POST':
+            request['method'] = method
             if env.get('CONTENT_LENGTH'):
-                message = self.post_request(env)
-                print(f'Получено сообщение (POST запрос) от {message["name"]}, c адресом {message["email"]}\n'
-                      f'Cообщение: {message["message"]}')
+                #message = self.post_request(env)
+                request['data'] = self.post_request(env)
+                print(f'Получено сообщение (POST запрос)')
         if path in self.urls:
             content = self.urls[path]
         else:
-            content = page_controller_404()
-        return content
+            content = PageController404()
+        return content(request)
 
     @staticmethod
     def parse_query_data(data):
@@ -56,18 +94,5 @@ class Application:
         return new_data
 
 
-def page_controller_main():
-    return render('index.html', object_list=[{'content': 'Main Page'}])
 
-
-def page_controller_about():
-    return render('about.html', object_list=[{'content': 'About us'}])
-
-
-def page_controller_contacts():
-    return render('contacts.html', object_list=[{'content': 'Contacts'}])
-
-
-def page_controller_404():
-    return '404 Page not found!!!'
 

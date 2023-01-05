@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>Курсы категории {{ name }}</h1>
+        <a href="/create_course?id={{ id }}">Создать курс</a>
+        <table>
+            <tr class="head">
+                <th>ID</th>
+                <th>Наименование курса</th>
+            </tr>
+            {% if object_list[0] %}
+                {% for item in object_list[0] %}
+                    <tr>
+                        <th>{{ item.id }}</th>
+                        <th>{{ item.name }}</th>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <th>--------</th>
+                    <th>--------</th>
+                </tr>
+            {% endif %}
+        </table>
+
+{% endblock %}

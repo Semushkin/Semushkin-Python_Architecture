@@ -1,22 +1,88 @@
 ﻿{% extends "base.html" %}
 {% block content %}
-        <h1>{{ object_list[0]['content'] }}</h1>
-        <p>-------------------------------------------------</p>
-        <!--p>Расписание на дату: {{date}} <b>(дата подставляется шаблоном)</b></p-->
-        <form action="" method="post">
-            <fieldset>
-                <legend>Введите сообщение</legend>
-                <p>
-                    <label class="title" for="name">Ваше имя:</label>
-                    <input type="text" name="name" id="name">
-                    <br/>
-                    <label class="title" for="email">Ваш email:</label>
-                    <input type="text" name="email" id="email">
-                    <label class="title" for="message">Введите сообщение:</label>
-                    <textarea name="message" id="" cols="30" rows="10"></textarea>
-                </p>
-            </fieldset>
-            <div class="submit"><input type="submit" value="Регистрация"/></div>
-        </form>
-        <p>-------------------------------------------------</p>
+        <!--h1>{{ object_list[0]['categories'] }}</h1-->
+        <h1>Категории</h1>
+        <a href="/create_category">Создать категорию</a>
+        <br>
+        <table>
+            <tr class="head">
+                <th>ID</th>
+                <th>Имя категории</th>
+                <th>Курсы (кол-во)</th>
+                <th></th>
+                <th></th>
+            </tr>
+            {% if object_list[0]['categories'] %}
+                {% for item in object_list[0]['categories'] %}
+                <tr>
+                    <th>{{ item.id }}</th>
+                    <th>{{ item.name }}</th>
+                    <th>{{ item.courses }}</th>
+                    <th><a href="/category_details?id={{item.id}}">Список курсов</a></th>
+                    <th><a href="/copy_category?id={{item.id}}">Копировать</a></th>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <th>--------</th>
+                <td>--------</td>
+                <td>--------</td>
+                <td>--------</td>
+                <td>--------</td>
+            </tr>
+            {% endif %}
+
+        </table>
+        <p>--------------------------------------------------------------------------------------------------</p>
+        <h1>Курсы</h1>
+        <table>
+            <tr class="head">
+                <th>ID</th>
+                <th>Наименование курса</th>
+                <th>Категория</th>
+                <th></th>
+            </tr>
+            {% if object_list[0]['courses'] %}
+                {% for item in object_list[0]['courses'] %}
+                    <tr>
+                        <th>{{ item.id }}</th>
+                        <th>{{ item.name }}</th>
+                        <th>{{ item.category }}</th>
+                        <th><a href="/copy_course?id={{item.id}}">Копировать</a></th>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <th>--------</th>
+                    <th>--------</th>
+                    <th>--------</th>
+                    <th>--------</th>
+                </tr>
+            {% endif %}
+        </table>
+        <p>--------------------------------------------------------------------------------------------------</p>
+        <h1>Студенты</h1>
+        <a href="/create_student">Добавить студента</a>
+        <table>
+            <tr class="head">
+                <th>ID</th>
+                <th>Person</th>
+                <th>Courses</th>
+            </tr>
+            {% if object_list[0]['students'] %}
+                {% for item in object_list[0]['students'] %}
+                    <tr>
+                        <th>{{ item.id }}</th>
+                        <th>{{ item.name }}</th>
+                        <th>--------</th>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <th>--------</th>
+                    <th>--------</th>
+                    <th>--------</th>
+                </tr>
+            {% endif %}
+        </table>
 {% endblock %}

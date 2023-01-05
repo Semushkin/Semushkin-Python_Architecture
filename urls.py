@@ -1,7 +1,15 @@
-from simple_wsgi import page_controller_main, page_controller_contacts, page_controller_about
+from views import PageControllerMain, PageControllerContacts, \
+    PageControllerAbout, CreateCategory, CategoryDetails, \
+    CreateCourse, CopyCategory, CreateStudent, CopyCourse
 
 URLS = {
-    '/': page_controller_main(),
-    '/about': page_controller_about(),
-    '/contacts': page_controller_contacts(),
+    '/': PageControllerMain(),
+    '/about': PageControllerAbout(),
+    '/contacts': PageControllerContacts(),
+    '/create_category': CreateCategory(),
+    '/category_details': CategoryDetails(),
+    '/create_course': CreateCourse(),
+    '/copy_category': CopyCategory(),
+    '/create_student': CreateStudent(),
+    '/copy_course': CopyCourse()
 }

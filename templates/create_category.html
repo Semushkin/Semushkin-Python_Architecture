@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Создание категории</h1>
+    {% if saved %}
+        <p>Категория добавлена</p>
+    {% else %}
+        <form method="post">
+            <input type="text" name="name" placeholder="Название">
+            <button type="submit">Создать</button>
+        </form>
+    {% endif %}
+{% endblock %}
