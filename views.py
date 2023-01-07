@@ -1,5 +1,6 @@
 from templator import render
 from patterns.petterns import DataBase, Log
+from patterns.structur_patterns import debug
 
 
 base = DataBase()
@@ -7,21 +8,25 @@ log = Log('test')
 
 
 class PageControllerMain:
+    @debug
     def __call__(self, request):
         return render('index.html', object_list=[base.read_base()])
 
 
 class PageControllerAbout:
+    @debug
     def __call__(self, request):
         return render('about.html', object_list=[{'content': 'About us'}])
 
 
 class PageControllerContacts:
+    @debug
     def __call__(self, request):
         return render('contacts.html', object_list=[{'content': 'Contacts'}])
 
 
 class CreateCategory:
+    @debug
     def __call__(self, request):
         if request['method'] == 'GET':
             return render('create_category.html', object_list=[{'content': 'CreateCategory'}])
@@ -32,6 +37,7 @@ class CreateCategory:
 
 
 class CategoryDetails:
+    @debug
     def __call__(self, request):
         if request['method'] == 'GET':
             category_id = int(request['data']['id'])
@@ -44,6 +50,7 @@ class CategoryDetails:
 
 
 class CopyCategory:
+    @debug
     def __call__(self, request):
         category_id = int(request['data']['id'])
         if request['method'] == 'GET':
@@ -52,6 +59,7 @@ class CopyCategory:
 
 
 class CreateCourse:
+    @debug
     def __call__(self, request):
         method = request['method']
         category_id = request['data']['id']
@@ -65,6 +73,7 @@ class CreateCourse:
 
 
 class CopyCourse:
+    @debug
     def __call__(self, request):
         course_id = int(request['data']['id'])
         if request['method'] == 'GET':
@@ -73,6 +82,7 @@ class CopyCourse:
 
 
 class CreateStudent:
+    @debug
     def __call__(self, request):
         method = request['method']
         if method == 'GET':
@@ -83,5 +93,6 @@ class CreateStudent:
 
 
 class PageController404:
+    @debug
     def __call__(self, request):
         return '404 Page not found!!!'
