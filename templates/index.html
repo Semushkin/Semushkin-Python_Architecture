@@ -2,8 +2,7 @@
 {% block content %}
         <!--h1>{{ object_list[0]['categories'] }}</h1-->
         <h1>Категории</h1>
-        <a href="/create_category">Создать категорию</a>
-        <br>
+        <h3><a href="/create_category">Создать категорию</a></h3>
         <table>
             <tr class="head">
                 <th>ID</th>
@@ -33,13 +32,14 @@
             {% endif %}
 
         </table>
-        <p>--------------------------------------------------------------------------------------------------</p>
+        <hr>
         <h1>Курсы</h1>
         <table>
             <tr class="head">
                 <th>ID</th>
                 <th>Наименование курса</th>
                 <th>Категория</th>
+                <th></th>
                 <th></th>
             </tr>
             {% if object_list[0]['courses'] %}
@@ -48,11 +48,13 @@
                         <th>{{ item.id }}</th>
                         <th>{{ item.name }}</th>
                         <th>{{ item.category }}</th>
-                        <th><a href="/copy_course?id={{item.id}}">Копировать</a></th>
+                        <th><a href="/copy_course?id={{ item.id }}">Копировать</a></th>
+                        <th><a href="/edit_course?id={{ item.id }}">Редактировать</a></th>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr>
+                    <th>--------</th>
                     <th>--------</th>
                     <th>--------</th>
                     <th>--------</th>
@@ -60,14 +62,15 @@
                 </tr>
             {% endif %}
         </table>
-        <p>--------------------------------------------------------------------------------------------------</p>
+        <hr>
         <h1>Студенты</h1>
-        <a href="/create_student">Добавить студента</a>
+        <h3><a href="/create_student">Добавить студента</a></h3>
         <table>
             <tr class="head">
                 <th>ID</th>
                 <th>Person</th>
                 <th>Courses</th>
+                <th></th>
             </tr>
             {% if object_list[0]['students'] %}
                 {% for item in object_list[0]['students'] %}
@@ -75,10 +78,12 @@
                         <th>{{ item.id }}</th>
                         <th>{{ item.name }}</th>
                         <th>--------</th>
+                        <th><a href="/student_details?student_id={{ item.id }}&status=select">Личный кабинет</a></th>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr>
+                    <th>--------</th>
                     <th>--------</th>
                     <th>--------</th>
                     <th>--------</th>

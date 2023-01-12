@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>Студент {{ name }}</h1>
+        <h3>Записан на курсы:</h3>
+        <table>
+            <tr class="head">
+                <th>ID</th>
+                <th>Наименование курса</th>
+                <th></th>
+            </tr>
+            {% if object_list[0]['selected'] %}
+                {% for course in object_list[0]['selected'] %}
+                    <tr>
+                        <th>{{ course.id }}</th>
+                        <th>{{ course.name }}</th>
+                        <th><a href="/student_details?student_id={{ student_id }}&status=delete&delete_course={{ course.id }}">Отписать от курса</a></th>
+
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <th>--------</th>
+                    <th>--------</th>
+                    <th>--------</th>
+                </tr>
+            {% endif %}
+        </table>
+        <h3>Можно записаться на:</h3>
+        <table>
+            <tr class="head">
+                <th>ID</th>
+                <th>Наименование курса</th>
+                <th></th>
+            </tr>
+            {% if object_list[0]['not_selected'] %}
+                {% for course in object_list[0]['not_selected'] %}
+                    <tr>
+                        <th>{{ course.id }}</th>
+                        <th>{{ course.name }}</th>
+                        <th><a href="/student_details?student_id={{ student_id }}&status=new&new_course={{ course.id }}">Записать на курс</a></th>
+
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <th>--------</th>
+                    <th>--------</th>
+                    <th>--------</th>
+                </tr>
+            {% endif %}
+        </table>
+{% endblock %}

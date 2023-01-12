@@ -1,6 +1,7 @@
 from views import PageControllerMain, PageControllerContacts, \
     PageControllerAbout, CreateCategory, CategoryDetails, \
-    CreateCourse, CopyCategory, CreateStudent, CopyCourse
+    CreateCourse, CopyCategory, CreateStudent, CopyCourse, \
+    EditCourse, StudentDetails
 
 URLS = {
     '/': PageControllerMain(),
@@ -11,5 +12,7 @@ URLS = {
     '/create_course': CreateCourse(),
     '/copy_category': CopyCategory(),
     '/create_student': CreateStudent(),
-    '/copy_course': CopyCourse()
+    '/copy_course': CopyCourse(),
+    '/edit_course': EditCourse(),
+    '/student_details': StudentDetails(),
 }

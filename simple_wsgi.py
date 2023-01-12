@@ -62,7 +62,7 @@ class Application:
             if env.get('CONTENT_LENGTH'):
                 #message = self.post_request(env)
                 request['data'] = self.post_request(env)
-                print(f'Получено сообщение (POST запрос)')
+                print(f'Получено сообщение (POST запрос), с данными {request["data"]}')
         if path in self.urls:
             content = self.urls[path]
         else:

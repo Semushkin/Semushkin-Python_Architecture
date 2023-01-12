@@ -1,5 +1,6 @@
 from tabulate import tabulate
 from copy import deepcopy
+from patterns.behavioral_patterns import Subject
 
 
 # Прототип
@@ -29,7 +30,7 @@ class CourseOnline:
     pass
 
 
-class Course(PrototypeCategoryCourse):
+class Course(PrototypeCategoryCourse, Subject):
     count = 0
     course_type = {
         'Online': CourseOnline,
@@ -41,6 +42,11 @@ class Course(PrototypeCategoryCourse):
         self.category_id = category_id
         Course.count += 1
         self.id = Course.count
+        super().__init__()
+
+    def change_course(self, new_name):
+        self.name = new_name
+        self.notify()
 
 
 class Student:
@@ -50,6 +56,13 @@ class Student:
         self.name = name
         Student.count += 1
         self.id = Student.count
+        self.courses_id = []
+
+    def add_course(self, course_id):
+        self.courses_id.append(int(course_id))
+
+    def leave_course(self, course_id):
+        self.courses_id.remove(int(course_id))
 
 
 class DataBase:
@@ -114,13 +127,24 @@ class DataBase:
         self.courses.append(course)
         return course
 
-    def copy_course(self, corse_id):
+    def copy_course(self, course_id):
         for course in self.courses:
-            if int(course.id) == corse_id:
+            if int(course.id) == course_id:
                 course_copy = course.clone()
                 Course.count += 1
                 course_copy.id = Course.count
                 self.courses.append(course_copy)
+                return
+
+    def name_course_by_id(self, course_id):
+        for item in self.courses:
+            if item.id == course_id:
+                return item.name
+
+    def edit_course(self, course_id, new_name):
+        for course in self.courses:
+            if int(course.id) == int(course_id):
+                course.change_course(new_name)
                 return
 
     def courses_by_category_id(self, category_id):
@@ -147,6 +171,36 @@ class DataBase:
         student = Student(name)
         self.students.append(student)
         return student
+
+    def student_name_by_id(self, student_id):
+        for student in self.students:
+            if student.id == int(student_id):
+                return student.name
+
+    def select_student_by_id(self, student_id):
+        for student in self.students:
+            if student.id == int(student_id):
+                return student
+            else:
+                return None
+
+    def courses_for_students(self, student_id):
+        selected = []
+        not_selected = []
+        for student in self.students:
+            if student.id == int(student_id):
+                for course in self.courses:
+                    # if student.courses_id == course.id:
+                    #     selected.append(course)
+                    if course.id in student.courses_id:
+                        selected.append(course)
+                    else:
+                        not_selected.append(course)
+        courses = {
+            'selected': selected,
+            'not_selected': not_selected
+        }
+        return courses
 
     def print_categories(self):
         result = {}
@@ -202,6 +256,10 @@ class Log(metaclass=Singleton):
 
     def read(self):
         return self.log_file
+
+
+
+
 
 if __name__ == '__main__':
     x = Log('test')
