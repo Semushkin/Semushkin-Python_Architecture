@@ -1,6 +1,11 @@
 from tabulate import tabulate
 from copy import deepcopy
 from patterns.behavioral_patterns import Subject
+from patterns.architectural_system_pattern_unit_of_work import DomainObject
+import DB_Errors
+from sqlite3 import connect
+
+connection = connect('DataBase.sqlite')
 
 
 # Прототип
@@ -10,14 +15,68 @@ class PrototypeCategoryCourse:
         return deepcopy(self)
 
 
-class Category(PrototypeCategoryCourse):
-    count = 0
+class Category(PrototypeCategoryCourse, DomainObject):
 
     def __init__(self, name):
+        self.id = 0
         self.name = name
         self.courses_count = 0
-        Category.count += 1
-        self.id = Category.count
+
+
+class CategoryMapper:
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.table_name = 'categories'
+
+    def insert(self, category):
+        statement = f'INSERT INTO {self.table_name} (name) VALUES (?)'
+        self.cursor.execute(statement, (category.name,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCategoryInsertException(e.args)
+
+    def update(self, category):
+        statement = f"UPDATE {self.table_name} SET name=? WHERE id=?"
+
+        self.cursor.execute(statement, (category.name, category.id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCategoryUpdateException(e.args)
+
+    def delete(self, category):
+        statement = f"DELETE FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (category.id,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCategoryDeleteException(e.args)
+
+    def select_all(self):
+        statement = f'SELECT * from {self.table_name}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, name = item
+            category = Category(name)
+            category.id = id
+            result.append(category)
+        return result
+
+    def select_by_id(self, id):
+        statement = f"SELECT id, name FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (id,))
+        result = self.cursor.fetchone()
+        if result:
+            id, name = result
+            category = Category(name)
+            category.id = id
+            return category
+        else:
+            raise DB_Errors.DBCategorySelectException(f'Category with id={id} not found')
 
 
 class CourseOffline:
@@ -30,18 +89,16 @@ class CourseOnline:
     pass
 
 
-class Course(PrototypeCategoryCourse, Subject):
-    count = 0
+class Course(PrototypeCategoryCourse, Subject, DomainObject):
     course_type = {
         'Online': CourseOnline,
         'Ofline': CourseOffline
     }
 
-    def __init__(self, name, category_id):
+    def __init__(self, category_id, name):
+        self.id = 0
         self.name = name
         self.category_id = category_id
-        Course.count += 1
-        self.id = Course.count
         super().__init__()
 
     def change_course(self, new_name):
@@ -49,183 +106,340 @@ class Course(PrototypeCategoryCourse, Subject):
         self.notify()
 
 
-class Student:
-    count = 0
+class CourseMapper:
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.table_name = 'courses'
+
+    def insert(self, course):
+        statement = f'INSERT INTO {self.table_name} (category_id, name) VALUES (?, ?)'
+        self.cursor.execute(statement, (course.category_id, course.name))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCoursesInsertException(e.args)
+
+    def update(self, course):
+        statement = f"UPDATE {self.table_name} SET name=? WHERE id=?"
+
+        self.cursor.execute(statement, (course.name, course.id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCoursesUpdateException(e.args)
+
+    def delete(self, course):
+        statement = f"DELETE FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (course.id,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCategoryDeleteException(e.args)
+
+    def select_all(self):
+        statement = f'SELECT * from {self.table_name}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, category_id, name = item
+            category = Course(category_id, name)
+            category.id = id
+            result.append(category)
+        return result
+
+    def select_by_id(self, course_id):
+        statement = f"SELECT id, category_id, name FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (course_id,))
+        result = self.cursor.fetchone()
+        if result:
+            id, category_id, name = result
+            course = Course(category_id, name)
+            course.id = id
+            return course
+        else:
+            raise DB_Errors.DBCoursesSelectException(f'Course with id={course_id} not found')
+
+    def select_course_by_category_id(self, category_id):
+        statement = f'SELECT id, category_id, name FROM {self.table_name} WHERE category_id=?'
+        self.cursor.execute(statement, (category_id,))
+        result = []
+        for item in self.cursor.fetchall():
+            id, category_id, name = item
+            course = Course(category_id, name)
+            course.id = id
+            result.append(course)
+        return result
+
+    def count_course_by_category_id(self, category_id):
+        statement = f'SELECT id, category_id, name FROM {self.table_name} WHERE category_id=?'
+        self.cursor.execute(statement, (category_id,))
+        result = len(self.cursor.fetchall())
+        return result
+
+
+class CourseStudent(DomainObject):
+
+    def __init__(self, course_id, student_id):
+        self.id = 0
+        self.course_id = course_id
+        self.student_id = student_id
+
+
+class CourseStudentMapper:
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.table_name = 'courses_students'
+
+    def insert(self, courses_students):
+        statement = f'INSERT INTO {self.table_name} (course_id, student_id) VALUES (?, ?)'
+        self.cursor.execute(statement, (courses_students.course_id, courses_students.student_id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCoursesInsertException(e.args)
+
+    def update(self, courses_students):
+        statement = f"UPDATE {self.table_name} SET course_id=? WHERE student_id=?"
+
+        self.cursor.execute(statement, (courses_students.course_id, courses_students.student_id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCoursesUpdateException(e.args)
+
+    def delete(self, courses_students):
+        statement = f"DELETE FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (courses_students.id,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBCategoryDeleteException(e.args)
+
+    def select_all(self):
+        statement = f'SELECT * from {self.table_name}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, course_id, student_id = item
+            courses_students = CourseStudent(course_id, student_id)
+            courses_students.id = id
+            result.append(courses_students)
+        return result
+
+    def select_by_id(self, courses_students_id):
+        statement = f"SELECT id, course_id, student_id FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (courses_students_id,))
+        result = self.cursor.fetchone()
+        if result:
+            id, course_id, student_id = result
+            courses_students = CourseStudent(course_id, student_id)
+            courses_students.id = id
+            return courses_students
+        else:
+            raise DB_Errors.DBCategorySelectException(f'CoursesStudents with id={courses_students_id} not found')
+
+    def select_by_student_id(self, student_id):
+        statement = f'SELECT id, course_id, student_id FROM {self.table_name} WHERE student_id=?'
+        self.cursor.execute(statement, (student_id,))
+        result = []
+        for item in self.cursor.fetchall():
+            id, course_id, student_id = item
+            courses_students = CourseStudent(course_id, student_id)
+            courses_students.id = id
+            result.append(courses_students)
+        return result
+
+    def courses_students_by_course_id_and_student_id(self, course_id, student_id):
+        statement = f"SELECT id, course_id, student_id FROM {self.table_name} WHERE course_id=? AND student_id =?"
+        self.cursor.execute(statement, (course_id, student_id))
+        result = self.cursor.fetchone()
+        if result:
+            id, course_id, student_id = result
+            courses_students = CourseStudent(course_id, student_id)
+            courses_students.id = id
+            return courses_students
+        else:
+            raise DB_Errors.DBCategorySelectException(f'CoursesStudents with course_id={course_id} and student_id={student_id} not found')
+
+
+class Student(DomainObject):
 
     def __init__(self, name):
+        self.id = 0
         self.name = name
-        Student.count += 1
-        self.id = Student.count
-        self.courses_id = []
+        super().__init__()
 
-    def add_course(self, course_id):
-        self.courses_id.append(int(course_id))
 
-    def leave_course(self, course_id):
-        self.courses_id.remove(int(course_id))
+class StudentMapper:
+    def __init__(self, connection):
+        self.connection = connection
+        self.cursor = connection.cursor()
+        self.table_name = 'students'
+
+    def insert(self, student):
+        statement = f'INSERT INTO {self.table_name} (name) VALUES (?)'
+        self.cursor.execute(statement, (student.name,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBStudentsInsertException(e.args)
+
+    def update(self, student):
+        statement = f"UPDATE {self.table_name} SET name=? WHERE id=?"
+
+        self.cursor.execute(statement, (student.name, student.id))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBStudentsUpdateException(e.args)
+
+    def delete(self, student):
+        statement = f"DELETE FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (student.id,))
+        try:
+            self.connection.commit()
+        except Exception as e:
+            raise DB_Errors.DBStudentsDeleteException(e.args)
+
+    def select_all(self):
+        statement = f'SELECT * from {self.table_name}'
+        self.cursor.execute(statement)
+        result = []
+        for item in self.cursor.fetchall():
+            id, name = item
+            student = Student(name)
+            student.id = id
+            result.append(student)
+        return result
+
+    def select_by_id(self, student_id):
+        statement = f"SELECT id, name FROM {self.table_name} WHERE id=?"
+        self.cursor.execute(statement, (student_id,))
+        result = self.cursor.fetchone()
+        if result:
+            id, name = result
+            student = Student(name)
+            student.id = id
+            return student
+        else:
+            raise DB_Errors.DBStudentsSelectException(f'Student with id={student_id} not found')
+
+
+class MapperRegistry:
+    mappers = {
+        'categories': CategoryMapper,
+        'courses': CourseMapper,
+        'students': StudentMapper,
+        'courses_students': CourseStudentMapper
+    }
+
+    @staticmethod
+    def get_mapper(obj):
+        if isinstance(obj, Category):
+            return CategoryMapper(connection)
+        elif isinstance(obj, Course):
+            return CourseMapper(connection)
+        elif isinstance(obj, Student):
+            return StudentMapper(connection)
+        elif isinstance(obj, CourseStudent):
+            return CourseStudentMapper(connection)
+
+    @staticmethod
+    def get_current_mapper(name):
+        return MapperRegistry.mappers[name](connection)
 
 
 class DataBase:
-    def __init__(self):
-        self.categories = []
-        self.courses = []
-        self.students = []
 
-    def print_base(self):
-        return f'Category count: {len(self.categories)}\n' \
-               f'Courses count: {len(self.courses)}\n' \
-               f'Students count: {len(self.students)}'
+    @staticmethod
+    def read_base():
+        mapper_category = MapperRegistry.get_current_mapper('categories')
+        mapper_course = MapperRegistry.get_current_mapper('courses')
+        mapper_student = MapperRegistry.get_current_mapper('students')
+        categories = mapper_category.select_all()
+        for category in categories:
+            count_courses = mapper_course.count_course_by_category_id(category.id)
+            category.courses_count = count_courses
+        courses = mapper_course.select_all()
+        for course in courses:
+            course.category_id = mapper_category.select_by_id(course.category_id).name
 
-    def read_base(self):
         data = {
-            'categories': self.category_list(),
-            'courses': self.course_list(),
-            'students': self.students
+            'categories': categories,
+            'courses': courses,
+            'students': mapper_student.select_all()
         }
         return data
 
-    def add_category(self, name):
+    @staticmethod
+    def add_category(name):
         category = Category(name)
-        self.categories.append(category)
         return category
 
-    def copy_category(self, category_id):
-        for cat in self.categories:
-            if int(cat.id) == category_id:
-                cat_copy = cat.clone()
-                Category.count += 1
-                cat_copy.id = Category.count
-                self.categories.append(cat_copy)
-                return
+    @staticmethod
+    def category_by_id(category_id):
+        mapper_category = MapperRegistry.get_current_mapper('categories')
+        return mapper_category.select_by_id(category_id)
 
-    def category_list(self):
-        cat_lst = []
-        for item in self.categories:
-            cat_lst.append(
-                {
-                    'id': item.id,
-                    'name': item.name,
-                    'courses': self.count_courses(item.id)
-                }
-            )
-        return cat_lst
-
-    def name_category_by_id(self, category_id):
-        for item in self.categories:
-            if item.id == category_id:
-                return item.name
-
-    def count_courses(self, category_id):
-        result = 0
-        for item in self.courses:
-            if item.category_id == category_id:
-                result += 1
-        return result
-
-    def add_course(self, name, category_id):
+    @staticmethod
+    def add_course(name, category_id):
         course = Course(name, category_id)
-        self.courses.append(course)
         return course
 
-    def copy_course(self, course_id):
-        for course in self.courses:
-            if int(course.id) == course_id:
-                course_copy = course.clone()
-                Course.count += 1
-                course_copy.id = Course.count
-                self.courses.append(course_copy)
-                return
+    @staticmethod
+    def course_by_id(courses_id):
+        mapper_course = MapperRegistry.get_current_mapper('courses')
+        return mapper_course.select_by_id(courses_id)
 
-    def name_course_by_id(self, course_id):
-        for item in self.courses:
-            if item.id == course_id:
-                return item.name
+    @staticmethod
+    def courses_by_category_id(category_id):
+        mapper_course = MapperRegistry.get_current_mapper('courses')
+        return mapper_course.select_course_by_category_id(category_id)
 
-    def edit_course(self, course_id, new_name):
-        for course in self.courses:
-            if int(course.id) == int(course_id):
-                course.change_course(new_name)
-                return
+    @staticmethod
+    def add_course_student(course_id, student_id):
+        courses_students = CourseStudent(course_id, student_id)
+        return courses_students
 
-    def courses_by_category_id(self, category_id):
-        result = []
-        if self.courses:
-            for item in self.courses:
-                if item.category_id == category_id:
-                    result.append(item)
-        return result
+    @staticmethod
+    def courses_students_by_course_id_and_student_id(course_id, student_id):
+        mapper_course_students = MapperRegistry.get_current_mapper('courses_students')
+        return mapper_course_students.courses_students_by_course_id_and_student_id(course_id, student_id)
 
-    def course_list(self):
-        cour_lst = []
-        for item in self.courses:
-            cour_lst.append(
-                {
-                    'id': item.id,
-                    'name': item.name,
-                    'category': self.name_category_by_id(int(item.category_id))
-                }
-            )
-        return cour_lst
-
-    def add_student(self, name):
-        student = Student(name)
-        self.students.append(student)
-        return student
-
-    def student_name_by_id(self, student_id):
-        for student in self.students:
-            if student.id == int(student_id):
-                return student.name
-
-    def select_student_by_id(self, student_id):
-        for student in self.students:
-            if student.id == int(student_id):
-                return student
-            else:
-                return None
-
-    def courses_for_students(self, student_id):
+    @staticmethod
+    def courses_by_student(student_id):
+        mapper_course_students = MapperRegistry.get_current_mapper('courses_students')
+        mapper_course = MapperRegistry.get_current_mapper('courses')
+        courses_students = mapper_course_students.select_by_student_id(student_id)
+        courses = mapper_course.select_all()
         selected = []
         not_selected = []
-        for student in self.students:
-            if student.id == int(student_id):
-                for course in self.courses:
-                    # if student.courses_id == course.id:
-                    #     selected.append(course)
-                    if course.id in student.courses_id:
-                        selected.append(course)
-                    else:
-                        not_selected.append(course)
-        courses = {
+        for course in courses:
+            exist = False
+            for item in courses_students:
+                if item.course_id == course.id:
+                    selected.append(course)
+                    exist = True
+            if not exist:
+                not_selected.append(course)
+        result = {
             'selected': selected,
             'not_selected': not_selected
         }
-        return courses
+        return result
 
-    def print_categories(self):
-        result = {}
-        id = []
-        name = []
-        for item in self.categories:
-            id.append(item.id)
-            name.append(item.name)
-        result['id'] = id
-        result['name'] = name
-        print(f'List of categories (total count: {Category.count})\n{tabulate(result, headers="keys")}')
+    @staticmethod
+    def add_student(name):
+        student = Student(name)
+        return student
 
-    def print_courses(self):
-        result = {}
-        id = []
-        name = []
-        category = []
-        for item in self.courses:
-            id.append(item.id)
-            name.append(item.name)
-            category.append(item.category_id)
-        result['id'] = id
-        result['name'] = name
-        result['category'] = category
-        print(f'List of cuorses (total count: {Course.count})\n{tabulate(result,  headers="keys")}')
+    @staticmethod
+    def select_student_by_id(student_id):
+        mapper_student = MapperRegistry.get_current_mapper('students')
+        return mapper_student.select_by_id(student_id)
 
 
 #Синглтон
@@ -258,24 +472,5 @@ class Log(metaclass=Singleton):
         return self.log_file
 
 
-
-
-
 if __name__ == '__main__':
-    x = Log('test')
-    y = Log('test_2')
-    z = Log('test')
-
-    print(x)
-    print(y)
-    print(z)
-    print('----------------------------------')
-    x.write('что то происходит')
-    x.write('что то происходит 2')
-    x.write('что то происходит 3')
-
-    y.write('что то происходит')
-
-    print(x.read())
-    print(y.read())
-    print(z.read())
+    pass

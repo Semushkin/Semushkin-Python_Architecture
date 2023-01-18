@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Редактирование курса</h1>
+<h1>Редактирование категории</h1>
         <form method="post">
-            <input type="text" name="name" value="{{ object_list[0]['name'] }}" placeholder="Название курса">
+            <input type="text" name="name" value="{{ object_list[0]['name'] }}" placeholder="Название категории">
             <button type="submit">Сохранить изменения</button>
             <input style="visibility: hidden" type="text" name="id" value="{{ object_list[0]['id'] }}" readonly>
         </form>

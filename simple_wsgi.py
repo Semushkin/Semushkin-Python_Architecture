@@ -51,6 +51,7 @@ class Application:
         query = env["QUERY_STRING"]
         request = {}
         if method == 'GET':
+
             request['method'] = method
             if query:
                 print(f'Получен GET запрос, c данными {self.parse_query_data(query)}')

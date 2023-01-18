@@ -10,20 +10,27 @@
                 <th>Курсы (кол-во)</th>
                 <th></th>
                 <th></th>
+<!--                <th></th>-->
             </tr>
             {% if object_list[0]['categories'] %}
                 {% for item in object_list[0]['categories'] %}
                 <tr>
                     <th>{{ item.id }}</th>
                     <th>{{ item.name }}</th>
-                    <th>{{ item.courses }}</th>
+                    {% if not item.courses_count %}
+                        <th>--Кусов нет--</th>
+                    {% else %}
+                        <th>{{ item.courses_count }}</th>
+                    {% endif %}
                     <th><a href="/category_details?id={{item.id}}">Список курсов</a></th>
-                    <th><a href="/copy_category?id={{item.id}}">Копировать</a></th>
+<!--                    <th><a href="/copy_category?id={{item.id}}">Копировать</a></th>-->
+                    <th><a href="/edit_category?id={{item.id}}">Редактировать</a></th>
                 </tr>
                 {% endfor %}
             {% else %}
             <tr>
                 <th>--------</th>
+                <td>--------</td>
                 <td>--------</td>
                 <td>--------</td>
                 <td>--------</td>
@@ -41,15 +48,17 @@
                 <th>Категория</th>
                 <th></th>
                 <th></th>
+<!--                <th></th>-->
             </tr>
             {% if object_list[0]['courses'] %}
                 {% for item in object_list[0]['courses'] %}
                     <tr>
                         <th>{{ item.id }}</th>
                         <th>{{ item.name }}</th>
-                        <th>{{ item.category }}</th>
-                        <th><a href="/copy_course?id={{ item.id }}">Копировать</a></th>
+                        <th>{{ item.category_id }}</th>
+<!--                        <th><a href="/copy_course?id={{ item.id }}">Копировать</a></th>-->
                         <th><a href="/edit_course?id={{ item.id }}">Редактировать</a></th>
+                        <th><a href="/course_delete?id={{ item.id }}">Удалить</a></th>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -69,7 +78,7 @@
             <tr class="head">
                 <th>ID</th>
                 <th>Person</th>
-                <th>Courses</th>
+<!--                <th>Courses</th>-->
                 <th></th>
             </tr>
             {% if object_list[0]['students'] %}
@@ -77,7 +86,7 @@
                     <tr>
                         <th>{{ item.id }}</th>
                         <th>{{ item.name }}</th>
-                        <th>--------</th>
+<!--                        <th>&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;</th>-->
                         <th><a href="/student_details?student_id={{ item.id }}&status=select">Личный кабинет</a></th>
                     </tr>
                 {% endfor %}
@@ -85,7 +94,7 @@
                 <tr>
                     <th>--------</th>
                     <th>--------</th>
-                    <th>--------</th>
+<!--                    <th>&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;</th>-->
                     <th>--------</th>
                 </tr>
             {% endif %}
